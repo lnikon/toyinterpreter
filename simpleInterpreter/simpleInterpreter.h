@@ -6,9 +6,58 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <stack>
+
+
+class InfixToPostfix
+{
+public:
+    void parse(const std::string& infix) {
+        for (size_t i = 0; i < infix.size(); i++) {
+            if ((infix[i] == '+') &&
+                (infix[i] == '-'))
+            {
+                m_ops.push(infix[i]);
+            }
+            else if (isdigit(infix[i]))
+            {
+                m_values.push(infix[i]);
+            }
+        }
+    }
+
+    float eval() {
+        float res = 0;
+
+        while (!m_values.empty())
+        {
+            float lhs = m_values.top();
+            m_values.pop();
+            float rhs = m_values.top();
+            m_values.pop();
+
+            if (m_ops.top() == '+') {
+                res += lhs + rhs;
+                m_ops.pop();
+            }
+            else if (m_ops.top() == '-') {
+                res += lhs - rhs;
+                m_ops.pop();
+            }
+            m_values.push(res);
+        }
+        return res;
+    }
+private:
+    std::string m_infix;
+    std::string m_postfix;
+    std::stack<float> m_values;
+    std::stack<char> m_ops;
+};
 
 class Buffer {
 public:
+    Buffer() = default;
     explicit Buffer(const std::string& cmd)
         : m_buffer(cmd) {}
 
@@ -48,6 +97,7 @@ private:
 
 class Interpreter {
 public:
+    Interpreter() {}
     void addHistory(const std::string& cmd) {
         m_hisMan.addHistory(Buffer{ cmd });
     }
@@ -57,16 +107,19 @@ public:
         m_hisMan.addHistory(m_buf);
     }
 
-    void eval() {
-
+    auto eval(const std::string& cmd) {
+        m_itp.parse(cmd);
+        auto res = m_itp.eval();
+        return res;
     }
 
-    void print(const std::string& cmd) {
-        std::cout << cmd << '\n';
+    void printBuffer() {
+        std::cout << m_buf.read() << '\n';
     }
 private:
     Buffer m_buf;
     HistoryManager m_hisMan;
+    InfixToPostfix m_itp;
 };
 
 // TODO: Reference additional headers your program requires here.
